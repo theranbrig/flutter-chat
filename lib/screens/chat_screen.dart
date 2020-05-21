@@ -83,16 +83,27 @@ class _ChatScreenState extends State<ChatScreen> {
             StreamBuilder<QuerySnapshot>(
               stream: _firestore.collection('messages').snapshots(),
               builder: (context, snapshot) {
-                if (snapshot.hasData) {
+                if (!snapshot.hasData) {
+                  return Center(
+                    child: CircularProgressIndicator(
+                      backgroundColor: Colors.lightBlueAccent,
+                    ),
+                  );
+                } else {
                   final messages = snapshot.data.documents;
-                  List<Text> messageWidgets = [];
+                  List<MessageBubble> messageWidgets = [];
                   for (var message in messages) {
                     final messageText = message.data['text'];
                     final sender = message.data['sender'];
-                    final messageWidget = Text('$messageText from $sender');
-                    messageWidgets.add(messageWidget);
+                    MessageBubble messageBubbles =
+                        MessageBubble(messageText: messageText, sender: sender);
+                    messageWidgets.add(messageBubbles);
                   }
-                  return Column(children: messageWidgets);
+                  return Expanded(
+                      child: ListView(
+                    children: messageWidgets,
+                    padding: EdgeInsets.symmetric(horizontal: 10, vertical: 20),
+                  ));
                 }
               },
             ),
@@ -126,6 +137,39 @@ class _ChatScreenState extends State<ChatScreen> {
             ),
           ],
         ),
+      ),
+    );
+  }
+}
+
+class MessageBubble extends StatelessWidget {
+  const MessageBubble({this.messageText, this.sender});
+
+  final String messageText;
+  final String sender;
+
+  @override
+  Widget build(BuildContext context) {
+    return Padding(
+      padding: EdgeInsets.all(10),
+      child: Column(
+        crossAxisAlignment: CrossAxisAlignment.end,
+        children: <Widget>[
+          Text('$sender', style: TextStyle(color: Colors.grey[400])),
+          Material(
+            elevation: 6,
+            borderRadius: BorderRadius.circular(30),
+            color: Colors.lightBlueAccent,
+            child: Padding(
+              padding:
+                  const EdgeInsets.symmetric(horizontal: 20.0, vertical: 10.0),
+              child: Text(
+                '$messageText',
+                style: TextStyle(fontSize: 15, color: Colors.white),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
